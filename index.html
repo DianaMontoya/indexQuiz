@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" charset="utf-8"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- Main css -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <title></title>
+  </head>
+
+  <body >
+    <form method="post" action="submit.php" enctype="multipart/form-data" onsubmit="return validarForm()">
+      <div>
+        <!--Logo DEPOL-->
+        <div class="form-group col-md-12" style="text-align: center;">
+          <img src="images/depol_horizontal.png" alt="image" style="opacity: 0.2; width: 10%;height: 10%; background-size: contain;">
+        </div>
+
+        <!--Agregar titulo al cuestionario -->
+        <h4><span class="label label-default">Título de este CUESTIONARIO:</span>
+          <input type="text" name="titulo" class="form-control input-lg" placeholder="Ingrese título" required />
+        </h4>
+
+        <!--Adjuntar archivo con información extra para el cuestionario -->
+        <h4><span class="label label-default">Información extra / Instrucciones:</span></h4>
+        <input type="hidden" name="MAX_FILE_SIZE" value="4194304" />
+        <input type="file" name="informacion" accept="application/pdf, .doc, .docx, .odf" />
+      </div>
+
+      <!--botón para agregar preguntas con opciones -->
+      <div class="input-group-addon" id="addMore">
+        <input type="button" class="btn btn-success" id="addMore()" onClick="addMore()" value="+ Pregunta con Opciones" />
+      </div>
+
+      <!--botón para agregar pregunta informativa -->
+      <div class="input-group-addon" id="addPregInformativa">
+        <input type="button" style="background-color: #FF9900" class="btn btn-success" id="addPregInformativa()" onClick="addPregInformativa()" value="+ Pregunta Informativa" />
+      </div>
+
+      <!--Sector reservado para ir poniendo las preguntas -->
+      <div class="form-group fieldGroupImage" id="fieldGroupImage">
+
+      </div>
+
+      <!-- este input serviría para ir poniendo el orden nuevo de las preguntas
+      <input type="hidden" name="caja_valor" id="caja_valor" value="">-->
+      <input type="submit" name="submit" class="btn btn-primary" value="Exportar a Formato Gift" />
+    </form>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        var a2 = 2;
+        var cantidadPreg = 0;
+      });
+
+      //Función para validar que todos los campos ocultos del formulario estén completos
+      function validarForm() {
+        /*//document.getElementById('fieldGroupImage').children().style.display ="block";
+        var elements = document.getElementById('fieldGroupImage');
+        alert(elements.length);
+        for (var i = 0; i < elements.length; i++) {
+         alert(elements[i].style.display);
+         if(elements[i].style.display == "none") {
+             alert('HIJO NONE');
+             //Do something here
+         }else {
+            alert('HIJO BLOCK');
+         }
+        alert("SE CAMBIO");
+        return false;
+        */
+      }
+
+      //Funciones para poder mover las preguntas de lugar y darles nuevo orden
+      $("#fieldGroupImage").sortable({
+        update: function() {
+          save_new_order()
+        }
+      });
+      function save_new_order() {
+        /*var preguntasOrdenadas = [];
+        $('#fieldGroupImage').children().each(function (i) {
+            preguntasOrdenadas.push($(this).attr('id') + ':' + i);
+           // preguntasOrdenadas.push($(this));
+        });
+        //var s = preguntasOrdenadas.join(',');
+        //alert(s);
+
+        var result = $('#fieldGroupImage').sortable("toArray");
+        cantidadPreg = result.length;
+        document.getElementById("caja_valor").value = cantidadPreg;
+        alert(result);
+        */
+      }
+
+      //Función para borrar pregunta multiple choice y restar contador.
+      function removePregunta(num) {
+        var r = confirm("¿Seguro desea borrar esta pregunta?");
+        if (r == true) {
+          opc = 'fieldGroupCopia' + num;
+          document.getElementById(opc).remove();
+          cloneCount--;
+
+        }
+      }
+
+      //Función para borrar pregunta informativa y restar contador.
+      function removePreguntaInformativa(num) {
+        var r = confirm("¿Seguro desea borrar esta pregunta?");
+        if (r == true) {
+          opc = 'pregInformativa' + num;
+          document.getElementById(opc).remove();
+          cloneCount--;
+        }
+      }
+
+      //Función para eliminar una de las opciones en la pregunta
+      function removeOpcion(num) {
+        //ni idea porque cuando quedan 2 opciones cuenta como 6 hijos. Reveer
+        //alert(document.getElementById(opc).childNodes.length);
+        var r = confirm("¿Seguro desea borrar una opción?");
+        if (r == true) {
+          opc = 'opciones' + num;
+          //if ((document.getElementById(opc).childNodes.length) > 6){
+          document.getElementById(opc).lastChild.remove();
+          //}
+        }
+      }
+
+      //Función para mostrar/ocultar div de respuestas en una pregunta
+      function muestra_oculta(num) {
+        //Si el div está visible y quiero ocultarlo
+        if (document.getElementById('opciones'+num+'').style.display == 'block'){
+          /* alert('cambio');
+          //Aca verifico que no quede ningun required sin responder
+          var elements = document.getElementsByTagName("input")
+          for (var i = 0; i < elements.length; i++) {
+           if(elements[i].value == "") {
+               alert('empty');
+               //Do something here
+           }
+         }
+         */
+        }
+        document.getElementById('opciones' + num + '').style.display = (document.getElementById('opciones' + num + '').style.display == 'none') ? 'block' : 'none';
+
+      }
+
+      var cloneCount = 0;
+      var a = 0;
+      //Función para agregar otra pregunta
+      function addMore() {
+        cloneCount++;
+        var primerOpcion = a++;
+        var segundaOpcion = a++;
+        var terceraOpcion = a++;
+
+        var divPreg = document.createElement('div');
+        divPreg.setAttribute('class', 'form-group fieldGroupCopia' + cloneCount + '');
+        divPreg.setAttribute('id', 'fieldGroupCopia' + cloneCount + '');
+        divPreg.setAttribute('style', 'margin-top: 20px;margin-left: 20px;margin-right: 20px;margin-bottom: 20px;');
+        divPreg.innerHTML =
+          "<div class='input-group' style='border-bottom-width: 2px;border-bottom-style: solid;border-right-width: 2px;border-right-style: solid;border-left-width: 2px;border-left-style: solid;border-top-width: 2px;border-top-style: solid;'>"
+
+          + "<div>" +
+          "<span class='label label-default'>PREGUNTA " + cloneCount + ":</span>" +
+          "  <a style='cursor: pointer; float:right; font-size:14px; line-height:30px; ' onClick='muestra_oculta(" + cloneCount + ")' title='' class='boton_mostrar'>Mostrar / Ocultar</a>" +
+          "  <input type='text' name='preguntaImag" + cloneCount + "[]' class='form-control' placeholder='Ingrese enunciado de la Pregunta' required/>" +
+          "  <div id='wrapper'>" +
+          "    <input type='file' name='output_image" + cloneCount + "' accept='image/*' onchange='preview_image(event," + cloneCount + ")'>" +
+          "    <img id='output_image" + cloneCount + "' style='max-width:180px;'/>" +
+          "  </div>" +
+          "</div>"
+
+          + "<div class='form-group input-group container opciones" + cloneCount + "' id='opciones" + cloneCount + "' style='display: block;'>" +
+          "  <div class='container'>" +
+          "    <div class='row'>" +
+          "      <div class='col-xs-12 col-md-3'>" +
+          "        <input type='button' class='btn btn-success' id='addOpcion()' onClick='addOpcion(" + cloneCount + ")' value='+ Opcion' />" +
+          "        <input type='button' class='btn btn-danger' id='removeOpcion()' onClick='removeOpcion(" + cloneCount + ")' value='- Opcion'/>" +
+          "      </div>" +
+          "    </div>" +
+          "  </div>"
+
+          + "  <div class='input-group' style='margin-top: 20px; border-top-width: 3px;border-top-style: solid;border-right-width: 3px;border-right-style: solid;border-left-width: 3px;border-left-style: solid;border-bottom-width: 3px;border-bottom-style: solid;'>" +
+          "   <input type='text' name='opcionAgregadaImag" + cloneCount + "[]' class='form-control' placeholder='Respuesta' required />" +
+          "   <input type='text' name='opcionAgregadaImagValor" + cloneCount + "[]' value='" + primerOpcion + "' hidden/>" +
+          "     <div id='wrapper'>" +
+          "      <input type='file' name='output_imageOpcionAgregada" + cloneCount + "[]' accept='image/*' onchange='preview_imageOpcionAgregada(event," + primerOpcion + ")'>" +
+          "      <img id='output_imageOpcionAgregada" + primerOpcion + "' style='max-width:180px;' />" +
+          "     </div>" +
+          "   <input type='text' name='retroalimAgregada" + cloneCount + "[]' class='form-control' placeholder='Retroalimentacion Opcion Agregada'/>" +
+          "   <span class='input-group-addon'><input type='radio' name='listaOpciones" + cloneCount + "[]' id='opcionAgregadacheck" + cloneCount + "' value='" + primerOpcion + "' required></span>" +
+          "  </div>"
+
+          + "  <div class='input-group' style='margin-top: 20px; border-top-width: 3px;border-top-style: solid;border-right-width: 3px;border-right-style: solid;border-left-width: 3px;border-left-style: solid;border-bottom-width: 3px;border-bottom-style: solid;'>" +
+          "   <input type='text' name='opcionAgregadaImag" + cloneCount + "[]' class='form-control' placeholder='Respuesta' required/>" +
+          "   <input type='text' name='opcionAgregadaImagValor" + cloneCount + "[]' value='" + segundaOpcion + "' hidden/>" +
+          "     <div id='wrapper'>" +
+          "      <input type='file' name='output_imageOpcionAgregada" + cloneCount + "[]' accept='image/*' onchange='preview_imageOpcionAgregada(event," + segundaOpcion + ")'>" +
+          "      <img id='output_imageOpcionAgregada" + segundaOpcion + "' style='max-width:180px;' />" +
+          "     </div>" +
+          "   <input type='text' name='retroalimAgregada" + cloneCount + "[]' class='form-control' placeholder='Retroalimentacion Opcion Agregada'/>" +
+          "   <span class='input-group-addon'><input type='radio' name='listaOpciones" + cloneCount + "[]' id='opcionAgregadacheck" + cloneCount + "' value='" + segundaOpcion + "' required></span>" +
+          "  </div>"
+
+          +
+          "  <div class='input-group' style='margin-top: 20px; border-top-width: 3px;border-top-style: solid;border-right-width: 3px;border-right-style: solid;border-left-width: 3px;border-left-style: solid;border-bottom-width: 3px;border-bottom-style: solid;'>" +
+          "   <input type='text' name='opcionAgregadaImag" + cloneCount + "[]' class='form-control' placeholder='Respuesta' required/>" +
+          "   <input type='text' name='opcionAgregadaImagValor" + cloneCount + "[]' value='" + terceraOpcion + "' hidden/>" +
+          "     <div id='wrapper'>" +
+          "      <input type='file' name='output_imageOpcionAgregada" + cloneCount + "[]' accept='image/*' onchange='preview_imageOpcionAgregada(event," + terceraOpcion + ")'>" +
+          "      <img id='output_imageOpcionAgregada" + terceraOpcion + "' style='max-width:180px;' />" +
+          "     </div>" +
+          "   <input type='text' name='retroalimAgregada" + cloneCount + "[]' class='form-control' placeholder='Retroalimentacion Opcion Agregada'/>" +
+          "   <span class='input-group-addon'><input type='radio' name='listaOpciones" + cloneCount + "[]' id='opcionAgregadacheck" + cloneCount + "' value='" + terceraOpcion + "' required></span>" +
+          "  </div>"
+
+          +
+          "</div>"
+
+          +
+          "<input type='text' name='feedback" + cloneCount + "[]' class='form-control' placeholder='Retroalimentacion general' />"
+
+          +
+          "<div class='input-group-addon'>" +
+          "   <input type='button' class='btn' id='removePregunta()' onClick='removePregunta(" + cloneCount + ")' value='Borrar Pregunta'/>"
+          //+" <a href='javascript:void(0)' class='btn btn-danger removeImage"+cloneCount+"'><span class='glyphicon glyphicon glyphicon-remove' aria-hidden='true'></span> Borrar Pregunta</a>"
+          +
+          "</div>"
+
+          +
+          "<input type='hidden' name='cantidadPreg' value='" + cloneCount + "'/>"
+
+          +
+          "</div>";
+
+        document.getElementById('fieldGroupImage').appendChild(divPreg);
+
+        var ocultar = cloneCount;
+        ocultar--;
+        document.getElementById('opciones' + ocultar + '').style.display = "none";
+
+      }
+
+      //Función para agregar pregunta informativa
+      function addPregInformativa() {
+        cloneCount++;
+
+        var divPregInformativa = document.createElement('div');
+        divPregInformativa.setAttribute('class', 'form-group fieldGroupCopia' + cloneCount + '');
+        divPregInformativa.setAttribute('id', 'fieldGroupCopia' + cloneCount + '');
+        divPregInformativa.setAttribute('style', 'margin-top: 20px;margin-left: 20px;margin-right: 20px;margin-bottom: 20px;');
+        divPregInformativa.innerHTML =
+          "<div class='input-group' draggable='true' style='border-bottom-width: 2px;border-bottom-style: solid;border-right-width: 2px;border-right-style: solid;border-left-width: 2px;border-left-style: solid;border-top-width: 2px;border-top-style: solid;'>"
+
+          +
+          "<div>" +
+          "<span class='label label-default'>PREGUNTA INFORMATIVA :</span>" +
+          "  <input type='text' name='preguntaImag" + cloneCount + "[]' class='form-control' placeholder='Enunciado de la Pregunta INFORMATIVA' required/>" +
+          "  <div id='wrapper'>" +
+          "    <input type='file' name='output_image" + cloneCount + "' accept='image/*' onchange='preview_image(event," + cloneCount + ")'>" +
+          "    <img id='output_image" + cloneCount + "' style='max-width:180px;'/>" +
+          "  </div>" +
+          "</div>"
+
+          +
+          "<div class='input-group-addon'>" +
+          "   <input type='button' class='btn' id='removePregunta()' onClick='removePregunta(" + cloneCount + ")' value='Borrar Pregunta'/>"
+          //+" <a href='javascript:void(0)' class='btn btn-danger removeImage"+cloneCount+"'><span class='glyphicon glyphicon glyphicon-remove' aria-hidden='true'></span> Borrar Pregunta</a>"
+          +
+          "</div>"
+
+          +
+          "<input type='hidden' name='cantidadPreg' value='" + cloneCount + "'/>"
+
+        document.getElementById('fieldGroupImage').appendChild(divPregInformativa);
+
+        var ocultar = cloneCount;
+        ocultar--;
+        document.getElementById('opciones' + ocultar + '').style.display = "none";
+      }
+
+      //Función para agregar otra opción a una pregunta
+      function addOpcion(num) {
+        var otraOpcion = a++;
+        var div = document.createElement('div');
+        div.setAttribute('class', ' input-group');
+        div.setAttribute('style', 'margin-top: 20px; border-top-width: 3px;border-top-style: solid;border-right-width: 3px;border-right-style: solid;border-left-width: 3px;border-left-style: solid;border-bottom-width: 3px;border-bottom-style: solid;');
+
+        div.innerHTML = div.innerHTML + '<div class="input-group">';
+        div.innerHTML = div.innerHTML + '<input type="text" name="opcionAgregadaImag' + num + '[]" class="form-control" placeholder="Respuesta" required/>';
+        div.innerHTML = div.innerHTML + '<input type="text" name="opcionAgregadaImagValor' + cloneCount + '[]" value="' + otraOpcion + '" hidden/>'
+        div.innerHTML = div.innerHTML + '<div id="wrapper">';
+        div.innerHTML = div.innerHTML + '<input type="file" name="output_imageOpcionAgregada' + num + '[]" accept="image/*" onchange="preview_imageOpcionAgregada(event,' + otraOpcion + ')">';
+        div.innerHTML = div.innerHTML + '<img id="output_imageOpcionAgregada' + otraOpcion + '" style="max-width:180px;"/>';
+        div.innerHTML = div.innerHTML + '</div>';
+        div.innerHTML = div.innerHTML + '<input type="text" name="retroalimAgregada' + num + '[]" class="form-control" placeholder="Retroalimentacion Opcion Agregada"/>';
+        div.innerHTML = div.innerHTML + '<span class="input-group-addon"><input type="radio" name="listaOpciones' + num + '[]" id="opcionAgregadacheck' + num + '" value="' + otraOpcion + '" required ></span>';
+        div.innerHTML = div.innerHTML + '</div>';
+
+        opc = 'opciones' + num;
+        document.getElementById(opc).appendChild(div);
+
+      }
+
+      // Función para ver preview de imagen en pregunta multiple choice
+      function preview_image(event, num) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var output = document.getElementById('output_image' + num + '');
+          output.src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+      }
+
+      // Función para ver preview de imagen en opciones
+      function preview_imageOpcionAgregada(event, num) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var output = document.getElementById('output_imageOpcionAgregada' + num + '');
+          output.src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+      }
+
+      // Función para ver preview de imagen en pregunta informativa
+      function preview_imageInformativa(event, num) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var output = document.getElementById('output_imageInformativa' + num + '');
+          output.src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+      }
+
+    </script>
+  </body>
+</html>
